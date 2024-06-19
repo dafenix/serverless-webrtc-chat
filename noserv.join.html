@@ -5,12 +5,13 @@
   <title> JOIN WebRTC channel </title>
   <link href="noserv.css" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+  <script src="./common.js"></script>
 </head>
 <body>
 <h2>  JOIN WebRTC channel  <span id="status"> init </span> </h2>
 <h3> 2.GET Offer's SDP</h3>
 <textarea id="creater-sdp" placeholder="HERE COPY & PASTE [1.CREATE Offer's SDP]"></textarea>
-<h3> 3.CREATE Participant'S SDP <button id="create">CREATE</button> </h3>
+<h3> 3.CREATE Participant'S SDP <button id="create">CREATE</button><button onclick="common.copyIntoClipboard('joiner-sdp')">Copy SDP</button> </h3>
 <textarea id="joiner-sdp"></textarea>
 <h3> CHAT </h3>
 <div id="chat">
