@@ -30,6 +30,14 @@ var common = (function () {
         document.body.removeChild(textarea);
     };
 
+    function copyFeedback() {
+        document.body.classList.add('filled');
+
+        setTimeout(function () {
+            document.body.classList.remove('filled');
+        }, 750);
+    }
+
     function copyIntoClipboard(id) {
         var elem = document.getElementById(id);
         var text = '';
@@ -37,9 +45,11 @@ var common = (function () {
             text = elem.value;
             if (!navigator.clipboard) {
                 fallback(text);
+                copyFeedback();
                 return;
             }
             navigator.clipboard.writeText(text);
+            copyFeedback();
         }
     };
 
