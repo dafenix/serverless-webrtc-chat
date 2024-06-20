@@ -13,14 +13,20 @@
   <h2> CREATE WebRTC channel <span id="status"> init </span></h2>
   <h3> 1.CREATE Offer's SDP <button onclick="common.copyIntoClipboard('creater-sdp')">Copy Offer</button></h3>
   <textarea id="creater-sdp"></textarea>
-  <h3> 4.GET Participant's SDP <button id="start">start</button></h3>
+  <h3> 4.GET Participant's SDP <button type="button" id="start">start</button></h3>
   <textarea id="joiner-sdp" placeholder="HERE COPY AND PASTE [3.Participant'S SDP]"></textarea>
   <h3> CHAT </h3>
   <div id="chat">
     <div id="chat-screen-wp">
       <div id="chat-screen"></div>
     </div>
-    <div id="ct"><input id="msg" disabled><button id="send" disabled>send</button></div>
+    <div id="ct"><input id="msg" disabled><button type="button" id="send" disabled>send</button></div>
+  </div>
+  <h3> LOG </h3>
+  <div id="log">
+    <div id="log-screen-wp">
+      <div id="log-screen"></div>
+    </div>
   </div>
   <script>
     //var server       = { urls: "stun:stun.l.google.com:19302" };
@@ -50,9 +56,17 @@
     };
 
     function start() {
-      var answerSDP = $('#joiner-sdp').val()
+      var answerSDP = $('#joiner-sdp').val();
       var answerDesc = new RTCSessionDescription(JSON.parse(answerSDP));
-      pc.setRemoteDescription(answerDesc);
+      addLog('RTCSessionDescription created.');
+      addLog('setRemoteDescription start.');
+      pc.setRemoteDescription(answerDesc, function() {
+        addLog('setRemoteDescription success callback.');
+      },
+      function(err) {
+        addLog('setRemoteDescription failure callback.'+err);
+      });
+      addLog('setRemoteDescription finished.')
     }
 
     var addMSG = function (msg, who) {
@@ -77,7 +91,13 @@
     $("#msg").keypress(function (e) { if (e.which == 13) { sendMSG() } });
     $("#send").click(sendMSG);
 
-  
+    var addLog = function (msg) {
+      var wrap = $("<div>").addClass("wrap").appendTo($("#log-screen"));
+      var div = $("<div>").appendTo(wrap);
+      $("<span>").appendTo(div);
+      $("<span>").html(msg).addClass("msg").appendTo(div);
+      $("#log-screen-wp").scrollTop($("#log-screen").height());
+    }
   </script>
 </body>
 

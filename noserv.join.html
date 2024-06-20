@@ -1,5 +1,6 @@
 <!doctype html>
 <html>
+
 <head>
   <meta charset="utf-8">
   <title> JOIN WebRTC channel </title>
@@ -7,70 +8,97 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
   <script src="./common.js"></script>
 </head>
+
 <body>
-<h2>  JOIN WebRTC channel  <span id="status"> init </span> </h2>
-<h3> 2.GET Offer's SDP</h3>
-<textarea id="creater-sdp" placeholder="HERE COPY & PASTE [1.CREATE Offer's SDP]"></textarea>
-<h3> 3.CREATE Participant'S SDP <button id="create">CREATE</button><button onclick="common.copyIntoClipboard('joiner-sdp')">Copy SDP</button> </h3>
-<textarea id="joiner-sdp"></textarea>
-<h3> CHAT </h3>
-<div id="chat">
-  <div id="chat-screen-wp">
-    <div id="chat-screen"></div>
+  <h2> JOIN WebRTC channel <span id="status"> init </span> </h2>
+  <h3> 2.GET Offer's SDP</h3>
+  <textarea id="creater-sdp" placeholder="HERE COPY & PASTE [1.CREATE Offer's SDP]"></textarea>
+  <h3> 3.CREATE Participant'S SDP <button id="create" type="button">CREATE</button><button type="button"
+      onclick="common.copyIntoClipboard('joiner-sdp')">Copy SDP</button> </h3>
+  <textarea id="joiner-sdp"></textarea>
+  <h3> CHAT </h3>
+  <div id="chat">
+    <div id="chat-screen-wp">
+      <div id="chat-screen"></div>
+    </div>
+    <div id="ct"><input id="msg" disabled><button id="send" disabled>send</button></div>
   </div>
-  <div id="ct"><input id="msg" disabled><button id="send" disabled>send</button></div>
-</div>
-<script>
-//var server       = { urls: "stun:stun.l.google.com:19302" };
-var sdpConstraints = { optional: [{RtpDataChannels: true}]  };
-var pc = new RTCPeerConnection(null);
-var dc;
+  <h3> LOG </h3>
+  <div id="log">
+    <div id="log-screen-wp">
+      <div id="log-screen"></div>
+    </div>
+  </div>
+  <script>
+    //var server       = { urls: "stun:stun.l.google.com:19302" };
+    var sdpConstraints = { optional: [{ RtpDataChannels: true }] };
+    var pc = new RTCPeerConnection(null);
+    var dc;
 
-pc.ondatachannel  = function(e) {dc = e.channel; dcInit(dc)};
-pc.onicecandidate = function(e) {
-  if (e.candidate) return;
-  $("#joiner-sdp").val(JSON.stringify(pc.localDescription));
-};
-pc.oniceconnectionstatechange = function(e) {
-  var state = pc.iceConnectionState
-  $('#status').html(state);
-  if (state == "connected") $("#msg, #send").attr("disabled", false);
-};
+    pc.ondatachannel = function (e) { dc = e.channel; dcInit(dc) };
+    pc.onicecandidate = function (e) {
+      if (e.candidate) return;
+      $("#joiner-sdp").val(JSON.stringify(pc.localDescription));
+    };
+    pc.oniceconnectionstatechange = function (e) {
+      var state = pc.iceConnectionState
+      $('#status').html(state);
+      if (state == "connected") $("#msg, #send").attr("disabled", false);
+    };
 
-function dcInit(dc) {
-  dc.onopen    = function()  {$("textarea").attr("disabled",true);addMSG("CONNECTED!", "info")};
-  dc.onmessage = function(e) {if (e.data) addMSG(e.data, "other");}
-}
+    function dcInit(dc) {
+      dc.onopen = function () { $("textarea").attr("disabled", true); addMSG("CONNECTED!", "info") };
+      dc.onmessage = function (e) { if (e.data) addMSG(e.data, "other"); }
+    }
 
-function createAnswerSDP() {
-  var offerDesc = new RTCSessionDescription(JSON.parse($("#creater-sdp").val()));
-  pc.setRemoteDescription(offerDesc)
-  pc.createAnswer(function (answerDesc) {
-    pc.setLocalDescription(answerDesc)
-  }, function () {console.warn("Couldn't create offer")},
-  sdpConstraints);
-};
+    function createAnswerSDP() {
+      addLog('createAnswerSDP start.');
+      var offerDesc = new RTCSessionDescription(JSON.parse($("#creater-sdp").val()));
+      addLog('RTCSessionDescription created.');
+      addLog('setRemoteDescription start.');
+      pc.setRemoteDescription(offerDesc)
+      addLog('setRemoteDescription finished.');
+      addLog('createAnswer start.');
+      pc.createAnswer(sdpConstraints).then(function (answerDesc) {
+        addLog('createAnswer inner callback start.');
+        addLog('createAnswer setLocalDescription start.');
+        pc.setLocalDescription(answerDesc)
+        addLog('createAnswer setLocalDescription finished.');
+        addLog('createAnswer inner callback end.');
+      }, function (err) { addLog('createAnswer inner callback error.' + err); });
 
-var sendMSG = function() {
-  var value = $("#msg").val();
-  if (value) {
-    dc.send(value);
-    addMSG(value, "me");
-    $("#msg").val('');
-  }
-}
+      addLog('createAnswerSDP finished.');
+    };
 
-var addMSG = function(msg, who) {
-  var wrap = $("<div>").addClass("wrap").appendTo($("#chat-screen"));
-  var div  = $("<div>").addClass(who).appendTo(wrap);
-  $("<span>").html(who).addClass("who").appendTo(div);
-  $("<span>").html(msg).addClass("msg").appendTo(div);
-  $("#chat-screen-wp").scrollTop($("#chat-screen").height());
-}
+    var sendMSG = function () {
+      var value = $("#msg").val();
+      if (value) {
+        dc.send(value);
+        addMSG(value, "me");
+        $("#msg").val('');
+      }
+    }
 
-$("#create").click(createAnswerSDP);
-$("#msg").keypress(function(e) {if(e.which == 13) {sendMSG()}});
-$("#send").click(sendMSG);
-</script>
+    var addMSG = function (msg, who) {
+      var wrap = $("<div>").addClass("wrap").appendTo($("#chat-screen"));
+      var div = $("<div>").addClass(who).appendTo(wrap);
+      $("<span>").html(who).addClass("who").appendTo(div);
+      $("<span>").html(msg).addClass("msg").appendTo(div);
+      $("#chat-screen-wp").scrollTop($("#chat-screen").height());
+    }
+
+    var addLog = function (msg) {
+      var wrap = $("<div>").addClass("wrap").appendTo($("#log-screen"));
+      var div = $("<div>").appendTo(wrap);
+      $("<span>").appendTo(div);
+      $("<span>").html(msg).addClass("msg").appendTo(div);
+      $("#log-screen-wp").scrollTop($("#log-screen").height());
+    }
+
+    $("#create").click(createAnswerSDP);
+    $("#msg").keypress(function (e) { if (e.which == 13) { sendMSG() } });
+    $("#send").click(sendMSG);
+  </script>
 </body>
+
 </html>
