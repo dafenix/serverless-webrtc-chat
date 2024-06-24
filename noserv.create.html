@@ -11,7 +11,8 @@
 
 <body>
   <h2> CREATE WebRTC channel <span id="status"> init </span></h2>
-  <h3> 1.CREATE Offer's SDP <button id="copy-sdp" onclick="common.copyIntoClipboard('creater-sdp')">Copy Offer</button></h3>
+  <h3> 1.CREATE Offer's SDP <button id="copy-sdp" onclick="common.copyIntoClipboard('creater-sdp')">Copy Offer</button>
+  </h3>
   <textarea id="creater-sdp"></textarea>
   <h3> 4.GET Participant's SDP <button type="button" id="start">start</button></h3>
   <textarea id="joiner-sdp" placeholder="HERE COPY AND PASTE [3.Participant'S SDP]"></textarea>
@@ -60,12 +61,12 @@
       var answerDesc = new RTCSessionDescription(JSON.parse(answerSDP));
       addLog('RTCSessionDescription created.');
       addLog('setRemoteDescription start.');
-      pc.setRemoteDescription(answerDesc, function() {
+      pc.setRemoteDescription(answerDesc, function () {
         addLog('setRemoteDescription success callback.');
       },
-      function(err) {
-        addLog('setRemoteDescription failure callback.'+err);
-      });
+        function (err) {
+          addLog('setRemoteDescription failure callback.' + err);
+        });
       addLog('setRemoteDescription finished.')
     }
 
@@ -98,6 +99,19 @@
       $("<span>").html(msg).addClass("msg").appendTo(div);
       $("#log-screen-wp").scrollTop($("#log-screen").height());
     }
+
+    setInterval(function () {
+      var currentdate = new Date();
+      var datetime = "Current time: " + currentdate.getDate() + "/"
+        + (currentdate.getMonth() + 1) + "/"
+        + currentdate.getFullYear() + " @ "
+        + currentdate.getHours() + ":"
+        + currentdate.getMinutes() + ":"
+        + currentdate.getSeconds() + ":"
+        + currentdate.getMilliseconds();
+      addLog(datetime);
+    }, 1000);
+
   </script>
 </body>
 
