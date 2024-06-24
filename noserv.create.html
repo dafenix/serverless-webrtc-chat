@@ -12,6 +12,8 @@
 <body>
   <h2> CREATE WebRTC channel <span id="status"> init </span></h2>
   <h3> 1.CREATE Offer's SDP <button id="copy-sdp" onclick="common.copyIntoClipboard('creater-sdp')">Copy Offer</button>
+    <input type="checkbox" id="customizeOffer" name="customizeOffer" checked>
+    <label for="customizeOffer">Customize Offer</label>
   </h3>
   <textarea id="creater-sdp"></textarea>
   <h3> 4.GET Participant's SDP <button type="button" id="start">start</button></h3>
@@ -30,6 +32,7 @@
     </div>
   </div>
   <script>
+    
     //var server       = { urls: "stun:stun.l.google.com:19302" };
     var sdpConstraints = { optional: [{ RtpDataChannels: true }] };
     var pc = new RTCPeerConnection(null);
@@ -43,6 +46,13 @@
     pc.onicecandidate = function (e) {
       if (e.candidate) return;
       $("#creater-sdp").val(JSON.stringify(pc.localDescription));
+      console.log('local description', JSON.stringify(pc.localDescription));
+     
+      if ($("#customizeOffer").is(':checked')){
+        var modified = setLocalConnectionToWebRtcOffer(JSON.stringify(pc.localDescription));
+        console.log('modifed description', modified);
+        $("#creater-sdp").val(modified);
+      }
     }
 
     function createOfferSDP() {
@@ -111,6 +121,46 @@
         + currentdate.getMilliseconds();
       addLog(datetime);
     }, 1000);
+
+    function setLocalConnectionToWebRtcOffer(webrtcOffer) {
+      if (!webrtcOffer) {
+        return '';
+      }
+
+      let webRtcOfferRows = webrtcOffer.split('\\r\\n');
+
+      if (webRtcOfferRows.length < 1) {
+        return '';
+      }
+
+      let newWebRtcOffer = '';
+
+      for (let rowIndex = 0; rowIndex < webRtcOfferRows.length; rowIndex++) {
+        let webRtcRow = webRtcOfferRows[rowIndex];
+
+        if (webRtcRow.includes('a=candidate')) {
+          let candidatesRowSplited = webRtcRow.split(' ');
+
+          if (candidatesRowSplited.length > 0) {
+            newWebRtcOffer += candidatesRowSplited[0] + ' ';
+            // Priority is set to 1, for low priority
+            newWebRtcOffer += '1 udp 1 127.0.0.1 ';
+            newWebRtcOffer += candidatesRowSplited[5] + ' ';
+            newWebRtcOffer += 'typ host\\r\\n';
+          }
+        }
+
+        if (rowIndex !== webRtcOfferRows.length - 1) {
+          newWebRtcOffer += webRtcRow + '\\r\\n';
+        } else {
+          newWebRtcOffer += webRtcRow;
+        }
+      }
+
+      //  console.info(`Modified WebRTC offer: ${newWebRtcOffer}`);
+      return newWebRtcOffer;
+    }
+
 
   </script>
 </body>
