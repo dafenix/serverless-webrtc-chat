@@ -5,12 +5,13 @@
   <title> CREATE WebRTC channel </title>
   <link href="noserv.css" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+  <script src="./common.js"></script>
 </head>
 <body>
 <h2> CREATE WebRTC channel <span id="status"> init </span></h2>
-<h3> 1.CREATE Offer's SDP </h3>
+<h3> 1.CREATE Offer's SDP <button onclick="common.copyIntoClipboard('creater-sdp')">Copy Offer</button><button onclick="closepc();">Close pc</button></h3>
 <textarea id="creater-sdp"></textarea>
-<h3> 4.GET Participant's SDP <button id="start">start</button></h3>
+<h3> 4.GET Participant's SDP <button id="start">start</button><button onclick="common.pasteFromClipboard('joiner-sdp')">Paste</button></h3>
 <textarea id="joiner-sdp" placeholder="HERE COPY AND PASTE [3.Participant'S SDP]"></textarea>
 <h3> CHAT </h3>
 <div id="chat">
@@ -50,6 +51,16 @@ function start() {
   var answerSDP = $('#joiner-sdp').val()
   var answerDesc = new RTCSessionDescription(JSON.parse(answerSDP));
   pc.setRemoteDescription(answerDesc);
+}
+
+function closepc(){
+  if (pc) {
+    pc.close();
+    console.log('pc closed');
+  }
+  else {
+    console.log('pc not initialized. No close possible');
+  }
 }
 
 var addMSG = function(msg, who) {
